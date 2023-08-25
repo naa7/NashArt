@@ -1,4 +1,9 @@
 # NashArt
+<p1>Najeeb | Andy Zheng | Sung Yi | Haad Azher</p1>
+
+---
+
+## Description
 
 A discord bot that acts as an art assistant
 chatbot using GPT-3.5. Can answer all kinds of art-related questions and is online 24/7 using replit and a runtime robot. We used discord-interactions to give users some privacy so when they are asking questions, the questions are not immediately visible unless you click on the interaction.
