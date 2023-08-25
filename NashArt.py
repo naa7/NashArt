@@ -21,7 +21,7 @@ def generate_response(user_message):
 
     providers = [
         Aichat(),
-        Ails(),
+        # Ails(),
         AiService(),
         AItianhu(),
         Bard(),
@@ -46,14 +46,19 @@ def generate_response(user_message):
                 messages=conversation,
                 provider=provider,
             )
-            break
-        except g4f.errors.G4FError as e:
-            error_message = str(e)
-            if "FREE LIMIT EXCEEDED" in error_message:
+
+            response_str = str(response)
+            error_message = '{"error":{"message":'
+            
+            if error_message in response_str:
                 print(f"Provider's free limit exceeded. Trying the next provider...")
-            else:
-                print(f"An error occurred with provider {provider}: {error_message}")
                 continue
+            
+            break
+        except Exception as e:
+            error_message = str(e)
+            # print(f"An error occurred with provider {provider}: {error_message}")
+            continue
     
     if response is None:
         return "No available providers."
