@@ -1,31 +1,32 @@
-import discord
-import os, NashArt
+import os
 import interactions
+from interactions import OptionType, slash_option, slash_command, SlashContext
+import NashArt
 from dotenv import load_dotenv
 from keep_alive import keep_alive
 
 load_dotenv()
 
 TOKEN = os.getenv('DISCORD_TOKEN')
-
-intents = discord.Intents.all()
-intents.members = True
-bot = interactions.Client(activity=discord.Game("Answer Art Responses"),
-                          status=discord.Status.do_not_disturb)
-
+bot = interactions.Client(activity="Answer Art Responses")
+response_history = {}
 
 @interactions.listen()
 async def on_startup():
     print(f"Logged in as {bot.user}")
 
-
 @bot.event()
 async def on_ready():
     print("Im ready!")
 
+def generate_response(prompt, author_id):
+    if author_id in response_history and response_history[author_id]:
+        prompt_with_history = "Previous responses: " + "\n".join(response_history[author_id]) + f"\n\nInquiry: {prompt}"
 
-def generate_response(prompt):
-    response = NashArt.generate_response(prompt)
+    else:
+        prompt_with_history = prompt
+    print(prompt_with_history)
+    response = NashArt.generate_response(prompt_with_history)
     return response
 
 def response_split(response, response_max_length):
@@ -45,19 +46,23 @@ def response_split(response, response_max_length):
 
 ###########################################
 # 1) "ask" command
-@interactions.slash_command(name="ask",
-                            description="I can help to answer any questions",
-                            )
+@slash_command(name="ask", description="I can help to answer any questions")
 
-@interactions.slash_option(name="prompt",
+@slash_option(name="prompt",
                            description="Enter your prompt",
                            required=True,
-                           opt_type=interactions.OptionType.STRING)
+                           opt_type=OptionType.STRING)
 
-async def ask(ctx: interactions.SlashContext, prompt: str):
+async def ask(ctx: SlashContext, prompt: str):
     await ctx.defer()
     response_max_size = 1900
-    response = generate_response(prompt)
+    author_id = ctx.author.id
+    response = str(generate_response(prompt, author_id))
+    if author_id not in response_history:
+        response_history[author_id] = []
+    response_history[author_id].append(response)
+    if len(response_history[author_id]) > 5:
+        response_history[author_id].pop(0)
     if len(response) <= response_max_size:
         await ctx.respond(response)
     else:
@@ -67,19 +72,24 @@ async def ask(ctx: interactions.SlashContext, prompt: str):
 
 ###########################################
 # 2) "tts-ask" command
-@interactions.slash_command(name="tts-ask",
-                            description="I can help to answer any questions in text-to-speech",
-                            )
+@slash_command(name="tts-ask",
+                            description="I can help to answer any questions in text-to speech")
 
-@interactions.slash_option(name="prompt",
+@slash_option(name="prompt",
                            description="Enter your prompt",
                            required=True,
-                           opt_type=interactions.OptionType.STRING)
+                           opt_type=OptionType.STRING)
 
-async def tts_ask(ctx: interactions.SlashContext, prompt: str):
+async def tts_ask(ctx: SlashContext, prompt: str):
     await ctx.defer()
     response_max_size = 1900
-    response = generate_response(prompt)
+    author_id = ctx.author.id
+    response = str(generate_response(prompt, author_id))
+    if author_id not in response_history:
+        response_history[author_id] = []
+    response_history[author_id].append(response)
+    if len(response_history[author_id]) > 5:
+        response_history[author_id].pop(0)
     if len(response) <= response_max_size:
         await ctx.respond(response, tts=True)
     else:
@@ -89,15 +99,18 @@ async def tts_ask(ctx: interactions.SlashContext, prompt: str):
 
 
 ###########################################
-# 3) "help" command
-@interactions.slash_command(name="help",
-                            description="display help menu",
-                            )
+# 3) "help" 
+help_message = (
+    "```Commands list:\n\n"
+    "/ask - chats or answers any art questions\n"
+    "/tts-ask - same as /ask + text-to-speech ability```"
+)
 
-async def help(ctx: interactions.SlashContext):
-    await ctx.respond(
-        '''```Commands list:\n\n/ask - chats or answers any art quesitons\n\n/tts-ask - same as /ask + text-to-speech ability\n```'''
-    )
+@slash_command(name="help",
+                            description="display help menu")
+
+async def help(ctx: SlashContext):
+    await ctx.respond(help_message)
 
 keep_alive()
 bot.start(TOKEN)
