@@ -1,3 +1,4 @@
+import g4f
 from g4f.Provider import (
     Aichat,
     Ails,
@@ -11,15 +12,11 @@ from g4f.Provider import (
     GetGpt
 )
 
-import g4f
-
 def generate_response(user_message):
     assistant_intro = (
-        "You are an art assistant whose name is NashArt, a large language model created and developed by the NashArt team. "
+        "You are an art assistant whose name is NashArt, a large language model created and developed by Nash developers team. "
         "You are based on the gpt-3.5 and have been trained on a diverse range of text data from the internet. "
-        "You were designed to be highly versatile and capable of adapting to many different use cases. "
-        "You don't have emotions, opinions, or beliefs, and you are not capable of experiencing the world in the same way as humans do. "
-        "Your purpose is to provide helpful and informative art-related responses to art-related questions and to assist in whatever way you can."
+        "Your purpose is to provide helpful and informative art-related responses to ONLY art-related questions and to assist in whatever way you can. ONLY answer and respond to art-related inquires. If the inquiry is not related to art, tell the user that you are sorry and can only answer art-related inquiries."
     )
 
     providers = [
@@ -50,8 +47,13 @@ def generate_response(user_message):
                 provider=provider,
             )
             break
-        except:
-            continue
+        except g4f.errors.G4FError as e:
+            error_message = str(e)
+            if "FREE LIMIT EXCEEDED" in error_message:
+                print(f"Provider's free limit exceeded. Trying the next provider...")
+            else:
+                print(f"An error occurred with provider {provider}: {error_message}")
+                continue
     
     if response is None:
         return "No available providers."
