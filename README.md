@@ -30,7 +30,7 @@ Follow these steps to set up NashArt on your system:
     ```
 
 3. Set up the virtual environment:
-4. 
+ 
     ```
     python3 -m venv env
     ```
@@ -52,20 +52,20 @@ Follow these steps to set up NashArt on your system:
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
     ```
 
-4. Install required dependencies:
+5. Install required dependencies:
 
     ```
     pip install -r requirements.txt
     ```
 
-5. Create an `.env` file in the root directory and store your Discord Token:
+6. Create an `.env` file in the root directory and store your Discord Token:
 
     ```
     # environment variables defined inside .env file
     DISCORD_TOKEN="YOUR_DISCORD_TOKEN"
     ```
 
-6. Run the bot:
+7. Run the bot:
 
     ```
     python bot.py
